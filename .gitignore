@@ -1,0 +1,15 @@
+# Telegram Bot Token
+token.txt
+
+# Bot User Database
+freebooksbbot.db
+
+# Ebooks Files Folder
+ebooks/
+
+
+# Python Compiled Cache
+*__pycache__/
+
+# MacOS Finder Junk
+*.DS_Store
