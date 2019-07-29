@@ -29,6 +29,10 @@ def reply(msg):
                                 "and you will be notified as soon as I'm ready to send you some free books to read 😊\n"
                                 "Hope to see you soon!".format(name), parse_mode="HTML")
 
+    elif text == "/getusers" and chatId in botAdmins:
+        users = select(u for u in User)[:].__len__()
+        bot.sendMessage(chatId, "There currently are <b>{}</b> registered users.".format(users), parse_mode="HTML")
+
 
 def incoming_message(msg):
     Thread(target=reply, args=[msg]).start()
