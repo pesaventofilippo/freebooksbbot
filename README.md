@@ -1,2 +1,2 @@
 # freebooksbbot
-Find me at t.me/freebooksbbot
+Find me on [Telegram](https://telegram.me/freebooksbbot "Telegram Bot")!
