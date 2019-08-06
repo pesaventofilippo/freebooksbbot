@@ -18,7 +18,7 @@ def reply_text(bot, user, msg):
     
     elif user.status.startswith("selecting_category"):
         categories = [cat.name.lower() for cat in select(c for c in Category)[:]]
-        book = Book.get(id=int(text.split('#', 1)[1]))
+        book = Book.get(id=int(user.status.split('#', 1)[1]))
         if text.lower() not in categories:
             cat = Category(name=text)
             book.category = cat
