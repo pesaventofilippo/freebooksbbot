@@ -68,9 +68,13 @@ def reply_file(bot, user, msg):
     if not Book.exists(lambda b: b.name == fileName):
         book = Book(name=fileName)
         user.status = "selecting_category#{}".format(book.id)
-        sent = bot.sendMessage(user.chatId, "{} successfully uploaded!\n"
-                                            "Please select a category for the book, or type a name to create a new one:".format(fileName))
-        bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.category(book.id, sent['message_id']))
+        if not select(c for c in Category)[:]:
+            bot.sendMessage(user.chatId, "{} successfully uploaded!\n"
+                                         "Please type a name to create a new category:".format(fileName))
+        else:
+            sent = bot.sendMessage(user.chatId, "{} successfully uploaded!\n"
+                                                "Please select a category for the book, or type a name to create a new one:".format(fileName))
+            bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.category(book.id, sent['message_id']))
     else:
         bot.sendMessage(user.chatId, "Warning: {} already exists! If you think this is an error, please change the "
                                      "ebook name and reupload it.".format(fileName))
