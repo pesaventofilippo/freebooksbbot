@@ -1,4 +1,4 @@
-from pony.orm import Database, PrimaryKey, Required, Optional, db_session
+from pony.orm import Database, PrimaryKey, Required, Optional, Set, db_session
 
 db = Database("sqlite", "../freebooksbbot.db", create_db=True)
 
@@ -12,6 +12,7 @@ class User(db.Entity):
 class Category(db.Entity):
     id = PrimaryKey(int, auto=True)
     name = Required(str, unique=True)
+    books = Set(lambda: Book, reverse='category')
 
 
 class Book(db.Entity):
