@@ -42,7 +42,7 @@ def reply_text(bot, user, msg):
             bot.sendMessage(user.chatId, "There currently are <b>{}</b> registered users.".format(users), parse_mode="HTML")
         
         elif text == "/getbooks" and isAdmin(user.chatId):
-            books = select(b for b in Book)[:]
+            books = [book.name for book in select(b for b in Book)[:]]
             bot.sendMessage(user.chatId, "List of currently registered books:\n"
                                          "- {}".format("\n- ".join(books)), parse_mode="HTML")
         
