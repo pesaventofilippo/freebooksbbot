@@ -17,10 +17,10 @@ def reply_text(bot, user, msg):
             bot.sendMessage(user.chatId, "Please upload an ebook file. Type /cancel to abort.")
     
     elif user.status.startswith("selecting_category"):
-        categories = select(c for c in Category)[:]
+        categories = [cat.name.lower() for cat in select(c for c in Category)[:]]
         book = Book.get(id=int(text.split('#', 1)[1]))
         if text.lower() not in categories:
-            cat = Category(name=text.lower())
+            cat = Category(name=text)
             book.category = cat
             user.status = "normal"
             bot.sendMessage(user.chatId, "New category {} successfully added!\n"
