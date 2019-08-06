@@ -1,5 +1,5 @@
 from modules.helpers import isAdmin, getFileType
-from modules.database import Book
+from modules.database import User, Book
 from pony.orm import select
 
 

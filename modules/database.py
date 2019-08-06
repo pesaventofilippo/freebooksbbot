@@ -31,9 +31,11 @@ if __name__ == "__main__":
     from sys import argv
     if "--reset-books" in argv:
         db.drop_table('Book', if_exists=True, with_all_data=True)
+        print("Books Table successfully deleted!")
     if "--sync-files" in argv:
         db.generate_mapping(create_tables=True)
         syncFiles()
+        print("File list successfully synced!")
 else:
     db.generate_mapping(create_tables=True)
     syncFiles()
