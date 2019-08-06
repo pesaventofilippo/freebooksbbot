@@ -1,4 +1,4 @@
-from pony.orm import Database, Required, db_session
+from pony.orm import Database, PrimaryKey, Required, Optional, db_session
 
 db = Database("sqlite", "../freebooksbbot.db", create_db=True)
 
@@ -9,9 +9,15 @@ class User(db.Entity):
     wantsNotifications = Required(bool, default=True)
 
 
-class Book(db.Entity):
+class Category(db.Entity):
+    id = PrimaryKey(int, auto=True)
     name = Required(str, unique=True)
-    category = Required(str, default="general")
+
+
+class Book(db.Entity):
+    id = PrimaryKey(int, auto=True)
+    name = Required(str, unique=True)
+    category = Optional(Category)
 
 
 def syncFiles():
@@ -31,7 +37,10 @@ if __name__ == "__main__":
     from sys import argv
     if "--reset-books" in argv:
         db.drop_table('Book', if_exists=True, with_all_data=True)
-        print("Books Table successfully deleted!")
+        print("Book Table successfully deleted!")
+    if "--reset-categories" in argv:
+        db.drop_table('Category', if_exists=True, with_all_data=True)
+        print("Category Table successfully deleted!")
     if "--sync-files" in argv:
         db.generate_mapping(create_tables=True)
         syncFiles()

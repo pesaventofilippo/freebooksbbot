@@ -1,8 +1,8 @@
 # Telegram Bot Token
 token.txt
 
-# Bot User Database
-freebooksbbot.db
+# Bot Databases
+*.db
 
 # Ebooks Files Folder
 ebooks/
