@@ -25,7 +25,7 @@ def reply(msg):
         reply_file(bot, user, msg)
     
     else:
-        bot.sendMessage(chatId, "I'm sorry, but this is not a supported file type...\n"
+        bot.sendMessage(chatId, "🤨 I'm sorry, but this is not a supported file type...\n"
                                 "Are you lost? Press /help")
 
 

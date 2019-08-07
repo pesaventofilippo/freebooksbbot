@@ -1,6 +1,8 @@
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
+from pony.orm import db_session
 
 
+@db_session
 def category(book_id, msg_id):
     from pony.orm import select
     from modules.database import Category

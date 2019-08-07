@@ -10,28 +10,23 @@ class User(db.Entity):
 
 
 class Category(db.Entity):
-    id = PrimaryKey(int, auto=True)
     name = Required(str, unique=True)
     books = Set(lambda: Book, reverse='category')
 
 
 class Book(db.Entity):
-    id = PrimaryKey(int, auto=True)
     name = Required(str, unique=True)
     category = Optional(Category)
 
 
+@db_session
 def syncFiles():
-    with db_session:
-        from pony.orm import select
-        from os import listdir
-        flist = listdir('ebooks')
-        for file in flist:
-            if not Book.exists(lambda b: b.name == file):
-                Book(name=file)
-        for dbook in select(book for book in Book)[:]:
-            if dbook.name not in flist:
-                dbook.delete()
+    from pony.orm import select
+    from os import listdir
+    flist = listdir('ebooks')
+    for dbook in select(book for book in Book)[:]:
+        if dbook.name not in flist:
+            dbook.delete()
 
 
 if __name__ == "__main__":
