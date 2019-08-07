@@ -129,10 +129,6 @@ def reply_button(bot, user, query):
     
     elif text.startswith("mvbook"):
         book_id = int(text.split('_')[1])
-        if not select(b for b in Book if b.category.name != "General")[:]:
-            bot.editMessageText((user.chatId, message_id), "📙 There currently are no books to categorize.")
-            return
         user.status = "selecting_category#{}".format(book_id)
         bot.editMessageText((user.chatId, message_id), "Please select a category for the book, or type a name to create a new one:",
                             reply_markup=keyboards.category(book_id, message_id))
-
