@@ -16,3 +16,10 @@ def supportedFile(msg):
     if getFileType(msg['document']) not in allowedExtensions:
         return False
     return True
+
+
+def supportedOsFile(name):
+    res = False
+    for ext in allowedExtensions:
+        res = True if name.endswith(ext) else res
+    return res

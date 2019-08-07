@@ -1,4 +1,5 @@
-from pony.orm import Database, PrimaryKey, Required, Optional, Set, db_session
+from pony.orm import Database, PrimaryKey, Required, Optional, Set, db_session, commit
+from modules.helpers import supportedOsFile
 
 db = Database("sqlite", "../freebooksbbot.db", create_db=True)
 
@@ -23,10 +24,17 @@ class Book(db.Entity):
 def syncFiles():
     from pony.orm import select
     from os import listdir
+    if not Category.exists(lambda c: c.name == "General"):
+        Category(name="General")
+        commit()
     flist = listdir('ebooks')
     for dbook in select(book for book in Book)[:]:
         if dbook.name not in flist:
             dbook.delete()
+    blist = [book.name for book in select(b for b in Book)[:]]
+    for fbook in flist:
+        if fbook not in blist and supportedOsFile(fbook):
+            Book(name=fbook, category=Category.get(name="General"))
 
 
 if __name__ == "__main__":
