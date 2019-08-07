@@ -57,6 +57,12 @@ def reply_text(bot, user, msg):
         elif text == "/cancel":
             bot.sendMessage(user.chatId, "Operation cancelled!\n"
                                          "I was doing nothing, by the way... 😴")
+        
+        elif text.startswith("/start getbook"):
+            book_id = int(text.split('_')[1])
+            book = Book.get(id=book_id)
+            bot.sendMessage(user.chatId, "<b>Book Name:</b> {}\n<b>Category:</b> {}".format(book.name, book.category.name), parse_mode="HTML")
+            bot.sendDocument(user.chatId, open('ebooks/{}'.format(book.name), 'rb'))
 
         # Admin-only commands
         elif isAdmin(user.chatId):
@@ -89,6 +95,9 @@ def reply_text(bot, user, msg):
             elif text == "/syncfiles":
                 syncFiles()
                 bot.sendMessage(user.chatId, "♻️ Successfully synced files!")
+
+        else:
+            bot.sendMessage(user.chatId, "😕 Sorry, I didn't understand.\nAre you lost? Type /help")
 
 
 @db_session
@@ -146,16 +155,14 @@ def reply_button(bot, user, query):
     elif text.startswith("searchcat"):
         cat_id = int(text.split('_')[1])
         cat = Category.get(id=cat_id)
+        books = [book for book in select(b for b in Book if b.category == cat)[:]]
+        res = ""
+        for b in books:
+            res += "\n<a href=\"https://t.me/freebooksbbot?start=getbook_{}\">{}</a>".format(b.id, b.name)
+        res = "\n<i>This category is empty.</i>" if not res else res
         bot.editMessageText((user.chatId, message_id), "🔍 <b>Category: {}</b>\n"
-                                                       "Click on any book title to download the ebook:".format(cat.name),
-                            parse_mode="HTML", reply_markup=keyboards.search_book(cat_id, message_id))
-
-    elif text.startswith("getbook"):
-        book_id = int(text.split('_')[1])
-        book = Book.get(id=book_id)
-        bot.editMessageText((user.chatId, message_id), "<b>Book Name:</b> {}\n<b>Category:</b> {}".format(book.name, book.category.name),
-                            parse_mode="HTML", reply_markup=None)
-        bot.sendDocument(user.chatId, open('ebooks/{}'.format(book.name), 'rb'))
+                                                       "Click on any book title to download the ebook:\n{}".format(cat.name, res),
+                            parse_mode="HTML", reply_markup=keyboards.back_search(message_id))
 
     elif text == "backsearch":
         bot.editMessageText((user.chatId, message_id), "🔍 <b>Book Search</b>\n"

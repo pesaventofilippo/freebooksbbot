@@ -50,12 +50,5 @@ def search_cat(msg_id):
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-@db_session
-def search_book(cat_id, msg_id):
-    from pony.orm import select
-    from modules.database import Book
-    keyboard = []
-    for book in select(b for b in Book if b.category.id == cat_id)[:]:
-        keyboard.append([InlineKeyboardButton(text=book.name, callback_data="getbook_{}#{}".format(book.id, msg_id))])
-    keyboard.append([InlineKeyboardButton(text="◀️ Back", callback_data="backsearch#{}".format(msg_id))])
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+def back_search(msg_id):
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="◀️ Back", callback_data="backsearch#{}".format(msg_id))]])
