@@ -1,5 +1,5 @@
 from modules.helpers import isAdmin, getFileType
-from modules.database import User, Book, Category
+from modules.database import User, Book, Category, syncFiles
 from modules import keyboards
 from pony.orm import select, db_session, commit
 from telepot.exception import TelegramError
@@ -72,6 +72,10 @@ def reply_text(bot, user, msg):
             sent = bot.sendMessage(user.chatId, "📦 Please choose a book from below:\n"
                                                 "Type /cancel to abort.")
             bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.movebook(sent['message_id']))
+        
+        elif text == "/syncfiles" and isAdmin(user.chatId):
+            syncFiles()
+            bot.sendMessage(user.chatId, "♻️ Successfully synced files!")
         
         elif text == "/cancel":
             bot.sendMessage(user.chatId, "Operation cancelled!\n"
