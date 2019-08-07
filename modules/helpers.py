@@ -1,5 +1,5 @@
 botAdmins = [368894926]
-allowedExtensions = ['pdf']
+allowedExtensions = ['pdf', 'epub']
 
 
 def isAdmin(chat_id):
