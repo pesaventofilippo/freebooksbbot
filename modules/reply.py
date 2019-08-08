@@ -18,8 +18,14 @@ def reply_text(bot, user, msg):
             bot.sendMessage(user.chatId, "❓ Please upload an ebook file. Type /cancel to abort.")
     
     elif user.status.startswith("selecting_category"):
+        book_id = int(user.status.split('#', 1)[1])
+        book = Book.get(id=book_id)
+        if text == "/cancel":
+            book.category = Category.get(name="General")
+            user.status = "normal"
+            bot.sendMessage(user.chatId, "📗 Book moved to category <i>General</i>.".format(text), parse_mode="HTML")
+            return
         categories = [cat.name.lower() for cat in select(c for c in Category)[:]]
-        book = Book.get(id=int(user.status.split('#', 1)[1]))
         if text.lower() not in categories:
             cat = Category(name=text)
             commit()
@@ -30,11 +36,6 @@ def reply_text(bot, user, msg):
         else:
             bot.sendMessage(user.chatId, "📙 Category <b>{}</b> already exists!\n"
                                          "Try with a different name, or select one from the list above.".format(text), parse_mode="HTML")
-    
-    elif user.status == "moving_book":
-        if text == "/cancel":
-            user.status = "normal"
-            bot.sendMessage(user.chatId, "📕 Book organizing cancelled.")
     
     elif user.status == "normal":
 
@@ -57,9 +58,7 @@ def reply_text(bot, user, msg):
                                         "Type /cancel to abort.")
         
         elif text == "/movebook" and isAdmin(user.chatId):
-            user.status = "moving_book"
-            sent = bot.sendMessage(user.chatId, "📦 Please choose a book from below:\n"
-                                                "Type /cancel to abort.")
+            sent = bot.sendMessage(user.chatId, "📦 Please choose a book from below:")
             bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.movebook(sent['message_id']))
         
         elif text == "/syncfiles" and isAdmin(user.chatId):
@@ -68,14 +67,19 @@ def reply_text(bot, user, msg):
 
         # General user commands
         elif text == "/start":
-            bot.sendMessage(user.chatId, "Hey <b>{}</b>! I'm the Free Books Bot, nice to meet you 👋🏻\n"
-                                         "I'm sorry, but I'm still under development and as of now I can only greet you... but not for much! "
-                                         "You can leave this chat open (do not delete that from Telegram, if you want you can 'archive' it) "
-                                         "and you will be notified as soon as I'm ready to send you some free books to read 😊\n"
-                                         "<i>Hope to see you soon!</i>".format(name), parse_mode="HTML")
+            bot.sendMessage(user.chatId, "Hey <b>{}</b>! I'm the Free Books Bot 👋🏻\n"
+                                         "I'm currently in <b>Beta Version</b>, but you can already use me to find some books: "
+                                         "type /search to find a book by category, or type /help if you have a question.\n"
+                                         "I can do only this for the moment, but expect lots of new features in the near future... "
+                                         "see you soon!".format(name), parse_mode="HTML")
         
         elif text == "/help":
-            bot.sendMessage(user.chatId, "😕 Sorry - I'm still under development. Type /start for more info.")
+            bot.sendMessage(user.chatId, "<b>Help&Commands Page</b>\n"
+                                         "Here you can find a list of all the available commands, and more:\n\n"
+                                         "/start - Start bot\n"
+                                         "/help - Show this page\n"
+                                         "/search - Search books by category\n"
+                                         "/cancel - Reset current action", parse_mode="HTML")
         
         elif text == "/search":
             sent = bot.sendMessage(user.chatId, "🔍 <b>Book Search</b>\n"
@@ -89,8 +93,9 @@ def reply_text(bot, user, msg):
         elif text.startswith("/start getbook"):
             book_id = int(text.split('_')[1])
             book = Book.get(id=book_id)
-            bot.sendMessage(user.chatId, "<b>Book Name:</b> {}\n<b>Category:</b> {}".format(book.name, book.category.name), parse_mode="HTML")
-            bot.sendDocument(user.chatId, open('ebooks/{}'.format(book.name), 'rb'))
+            with open('ebooks/{}'.format(book.name), 'rb') as upload:
+                bot.sendDocument(user.chatId, upload, caption="<b>Book Name:</b> {}\n<b>Category:</b> {}".format(book.name, book.category.name),
+                                parse_mode="HTML")
 
         # Unknown command
         else:
@@ -103,9 +108,8 @@ def reply_file(bot, user, msg):
         bot.sendMessage(user.chatId, "📕 Sorry, you're currently not uploading a file.\n"
                                      "If you are an authorized admin, type /newbook.")
         return
-    file = msg['document']
-    fileId = file['file_id']
-    fileName = file['file_name']
+    fileId = msg['document']['file_id']
+    fileName = msg['document']['file_name']
     try:
         bot.download_file(fileId, 'ebooks/{}'.format(fileName))
     except TelegramError:
@@ -115,7 +119,7 @@ def reply_file(bot, user, msg):
         book = Book(name=fileName)
         commit()
         user.status = "selecting_category#{}".format(book.id)
-        if not select(c for c in Category)[:]:
+        if not select(c for c in Category if c.category != "General")[:]:
             bot.sendMessage(user.chatId, "📗 <b>{}</b> successfully uploaded!\n"
                                          "Please type a name to create a new category:".format(fileName), parse_mode="HTML")
         else:
@@ -140,7 +144,7 @@ def reply_button(bot, user, query):
         book = Book.get(id=book_id)
         book.category = Category.get(id=cat_id)
         user.status = "normal"
-        bot.editMessageText((user.chatId, message_id), "🗂 Successfully moved book <b>{}</b> to category <b>{}</b>!".format(book.name, book.category.name),
+        bot.editMessageText((user.chatId, message_id), "🗂 Successfully moved book <b>{}</b> to category <i>{}</i>!".format(book.name, book.category.name),
                             parse_mode="HTML", reply_markup=None)
     
     elif text.startswith("mvbook"):
@@ -152,14 +156,12 @@ def reply_button(bot, user, query):
     elif text.startswith("searchcat"):
         cat_id = int(text.split('_')[1])
         cat = Category.get(id=cat_id)
-        books = [book for book in select(b for b in Book if b.category == cat)[:]]
         res = ""
-        for b in books:
+        for b in cat.books:
             res += "\n📖 <a href=\"https://t.me/freebooksbbot?start=getbook_{}\">{}</a>".format(b.id, b.name)
-        res = "\n<i>This category is empty.</i>" if not res else res
         bot.editMessageText((user.chatId, message_id), "🔍 <b>Category: {}</b>\n"
-                                                       "Click on any book title to download the ebook, "
-                                                       "then click on \"Start\" at the bottom:\n{}".format(cat.name, res),
+                                                       "Click on any book title, then click on \"Start\" at the bottom to "
+                                                       "download the ebook:\n{}".format(cat.name, res),
                             parse_mode="HTML", reply_markup=keyboards.back_search(message_id), disable_web_page_preview=True)
 
     elif text == "backsearch":
