@@ -57,9 +57,6 @@ def reply_text(bot, user, msg):
                                         "Type /cancel to abort.")
         
         elif text == "/movebook" and isAdmin(user.chatId):
-            if not select(b for b in Book if b.category.name == "General")[:]:
-                bot.sendMessage(user.chatId, "📕 Sorry, there currently are no books to categorize.")
-                return
             user.status = "moving_book"
             sent = bot.sendMessage(user.chatId, "📦 Please choose a book from below:\n"
                                                 "Type /cancel to abort.")
@@ -70,7 +67,7 @@ def reply_text(bot, user, msg):
             bot.sendMessage(user.chatId, "♻️ Successfully synced files!")
 
         # General user commands
-        if text == "/start":
+        elif text == "/start":
             bot.sendMessage(user.chatId, "Hey <b>{}</b>! I'm the Free Books Bot, nice to meet you 👋🏻\n"
                                          "I'm sorry, but I'm still under development and as of now I can only greet you... but not for much! "
                                          "You can leave this chat open (do not delete that from Telegram, if you want you can 'archive' it) "
