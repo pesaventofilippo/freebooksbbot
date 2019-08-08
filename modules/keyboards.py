@@ -29,7 +29,8 @@ def movebook(msg_id, show_all=False):
     for book in select(b for b in Book)[:]:
         if (show_all) or (book.category.name == "General"):
             keyboard.append([InlineKeyboardButton(text=book.name, callback_data="mvbook_{}#{}".format(book.id, msg_id))])
-    keyboard.append([InlineKeyboardButton(text="📚 Show All Books", callback_data="moveall#{}".format(msg_id))])
+    if not show_all:
+        keyboard.append([InlineKeyboardButton(text="📚 Show All Books", callback_data="moveall#{}".format(msg_id))])
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
@@ -40,7 +41,7 @@ def search_cat(msg_id):
     keyboard = []
     line = []
     linecount = 0
-    for cat in select(c for c in Category)[:]:
+    for cat in select(c for c in Category if c.books)[:]:
         linecount += 1
         if linecount > 2:
             linecount = 1

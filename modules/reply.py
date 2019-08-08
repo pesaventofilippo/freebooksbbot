@@ -44,10 +44,10 @@ def reply_text(bot, user, msg):
             bot.sendMessage(user.chatId, "👥 There currently are <b>{}</b> registered users.".format(users), parse_mode="HTML")
         
         elif text == "/getbooks" and isAdmin(user.chatId):
-            books = [[book.name, book.category.name] for book in select(b for b in Book)[:]]
+            books = [book for book in select(b for b in Book)[:]]
             res = ""
             for b in books:
-                res += "\n- <b>{}</b> on <i>{}</i>".format(b[0], b[1])
+                res += "\n- <b>{}</b> on <i>{}</i>".format(b.name, b.category.name)
             res = "\nBooks Database is currently empty." if not res else res
             bot.sendMessage(user.chatId, "📚 List of currently registered books:" + res, parse_mode="HTML")
         
