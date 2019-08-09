@@ -1,4 +1,4 @@
-from pony.orm import Database, PrimaryKey, Required, Optional, Set, db_session, commit
+from pony.orm import Database, Required, Optional, Set, db_session, commit
 from modules.helpers import supportedOsFile
 
 db = Database("sqlite", "../freebooksbbot.db", create_db=True)

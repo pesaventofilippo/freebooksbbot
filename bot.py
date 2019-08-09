@@ -17,13 +17,13 @@ def reply(msg):
     if not User.exists(lambda u: u.chatId == chatId):
         User(chatId=chatId)
     user = User.get(chatId=chatId)
-    
+
     if msg.get('text'):
         reply_text(bot, user, msg)
-    
+
     elif msg.get('document') and supportedFile(msg):
         reply_file(bot, user, msg)
-    
+
     else:
         bot.sendMessage(chatId, "🤨 I'm sorry, but this is not a supported file type...\n"
                                 "Are you lost? Press /help")

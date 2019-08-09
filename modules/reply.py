@@ -1,4 +1,4 @@
-from modules.helpers import isAdmin, getFileType
+from modules.helpers import isAdmin
 from modules.database import User, Book, Category, syncFiles
 from modules import keyboards
 from pony.orm import select, db_session, commit
@@ -16,14 +16,14 @@ def reply_text(bot, user, msg):
             bot.sendMessage(user.chatId, "📕 File Upload cancelled.")
         else:
             bot.sendMessage(user.chatId, "❓ Please upload an ebook file. Type /cancel to abort.")
-    
+
     elif user.status.startswith("selecting_category"):
         book_id = int(user.status.split('#', 1)[1])
         book = Book.get(id=book_id)
         if text == "/cancel":
             book.category = Category.get(name="General")
             user.status = "normal"
-            bot.sendMessage(user.chatId, "📗 Book moved to category <i>General</i>.".format(text), parse_mode="HTML")
+            bot.sendMessage(user.chatId, "📗 Book moved to category <i>General</i>.", parse_mode="HTML")
             return
         categories = [cat.name.lower() for cat in select(c for c in Category)[:]]
         if text.lower() not in categories:
@@ -36,14 +36,14 @@ def reply_text(bot, user, msg):
         else:
             bot.sendMessage(user.chatId, "📙 Category <b>{}</b> already exists!\n"
                                          "Try with a different name, or select one from the list above.".format(text), parse_mode="HTML")
-    
+
     elif user.status == "normal":
 
         # Admin-only commands
         if text == "/getusers" and isAdmin(user.chatId):
             users = select(u for u in User)[:].__len__()
             bot.sendMessage(user.chatId, "👥 There currently are <b>{}</b> registered users.".format(users), parse_mode="HTML")
-        
+
         elif text == "/getbooks" and isAdmin(user.chatId):
             books = [book for book in select(b for b in Book)[:]]
             res = ""
@@ -51,16 +51,16 @@ def reply_text(bot, user, msg):
                 res += "\n- <b>{}</b> on <i>{}</i>".format(b.name, b.category.name)
             res = "\nBooks Database is currently empty." if not res else res
             bot.sendMessage(user.chatId, "📚 List of currently registered books:" + res, parse_mode="HTML")
-        
+
         elif text == "/newbook" and isAdmin(user.chatId):
             user.status = "uploading_file"
             bot.sendMessage(user.chatId, "📎 Ok, now send me the file for the new ebook.\n"
                                         "Type /cancel to abort.")
-        
+
         elif text == "/movebook" and isAdmin(user.chatId):
             sent = bot.sendMessage(user.chatId, "📦 Please choose a book from below:")
             bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.movebook(sent['message_id']))
-        
+
         elif text == "/syncfiles" and isAdmin(user.chatId):
             syncFiles()
             bot.sendMessage(user.chatId, "♻️ Successfully synced files!")
@@ -72,7 +72,7 @@ def reply_text(bot, user, msg):
                                          "type /search to find a book by category, or type /help if you have a question.\n"
                                          "I can do only this for the moment, but expect lots of new features in the near future... "
                                          "see you soon!".format(name), parse_mode="HTML")
-        
+
         elif text == "/help":
             bot.sendMessage(user.chatId, "<b>Help&Commands Page</b>\n"
                                          "Here you can find a list of all the available commands, and more:\n\n"
@@ -80,12 +80,12 @@ def reply_text(bot, user, msg):
                                          "/help - Show this page\n"
                                          "/search - Search books by category\n"
                                          "/cancel - Reset current action", parse_mode="HTML")
-        
+
         elif text == "/search":
             sent = bot.sendMessage(user.chatId, "🔍 <b>Book Search</b>\n"
                                                 "Pick a category from the list below:", parse_mode="HTML")
             bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.search_cat(sent['message_id']))
-        
+
         elif text == "/cancel":
             bot.sendMessage(user.chatId, "Operation cancelled!\n"
                                          "I was doing nothing, by the way... 😴")
@@ -146,7 +146,7 @@ def reply_button(bot, user, query):
         user.status = "normal"
         bot.editMessageText((user.chatId, message_id), "🗂 Successfully moved book <b>{}</b> to category <i>{}</i>!".format(book.name, book.category.name),
                             parse_mode="HTML", reply_markup=None)
-    
+
     elif text.startswith("mvbook"):
         book_id = int(text.split('_')[1])
         user.status = "selecting_category#{}".format(book_id)
