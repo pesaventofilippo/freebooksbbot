@@ -138,6 +138,7 @@ def reply_file(bot, user, msg):
                                                     "Please select a category for the book, or type a name to create a new one:".format(fileName), parse_mode="HTML")
                 bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.category(book.id, sent['message_id']))
         else:
+            book.category = Category.get(name="General")
             user.status = "normal"
             bot.sendMessage(user.chatId, "📗 <b>{}</b> successfully uploaded!", parse_mode="HTML")
     else:
