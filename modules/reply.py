@@ -79,12 +79,18 @@ def reply_text(bot, user, msg):
                                          "/start - Start bot\n"
                                          "/help - Show this page\n"
                                          "/search - Search books by category\n"
+                                         "/submit - Send a new ebook for everyone to read\n"
                                          "/cancel - Reset current action", parse_mode="HTML")
 
         elif text == "/search":
             sent = bot.sendMessage(user.chatId, "🔍 <b>Book Search</b>\n"
                                                 "Pick a category from the list below:", parse_mode="HTML")
             bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.search_cat(sent['message_id']))
+        
+        elif text == "/submit":
+            user.status = "uploading_file"
+            bot.sendMessage(user.chatId, "📎 Ok, please send me the new ebook, or type /cancel to abort.\n"
+                                        "Supported files: pdf, epub")
 
         elif text == "/cancel":
             bot.sendMessage(user.chatId, "Operation cancelled!\n"
@@ -106,7 +112,7 @@ def reply_text(bot, user, msg):
 def reply_file(bot, user, msg):
     if user.status != "uploading_file":
         bot.sendMessage(user.chatId, "📕 Sorry, you're currently not uploading a file.\n"
-                                     "If you are an authorized admin, type /newbook.")
+                                     "If you are an authorized admin, type /newbook. Otherwise, type /submit if you would like to submit a new book.")
         return
     fileId = msg['document']['file_id']
     fileName = msg['document']['file_name']
@@ -118,14 +124,18 @@ def reply_file(bot, user, msg):
     if not Book.exists(lambda b: b.name == fileName):
         book = Book(name=fileName)
         commit()
-        user.status = "selecting_category#{}".format(book.id)
-        if not select(c for c in Category if c.category != "General")[:]:
-            bot.sendMessage(user.chatId, "📗 <b>{}</b> successfully uploaded!\n"
-                                         "Please type a name to create a new category:".format(fileName), parse_mode="HTML")
+        if isAdmin(user.chatId):
+            user.status = "selecting_category#{}".format(book.id)
+            if not select(c for c in Category if c.category != "General")[:]:
+                bot.sendMessage(user.chatId, "📗 <b>{}</b> successfully uploaded!\n"
+                                            "Please type a name to create a new category:".format(fileName), parse_mode="HTML")
+            else:
+                sent = bot.sendMessage(user.chatId, "📗 <b>{}</b> successfully uploaded!\n"
+                                                    "Please select a category for the book, or type a name to create a new one:".format(fileName), parse_mode="HTML")
+                bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.category(book.id, sent['message_id']))
         else:
-            sent = bot.sendMessage(user.chatId, "📗 <b>{}</b> successfully uploaded!\n"
-                                                "Please select a category for the book, or type a name to create a new one:".format(fileName), parse_mode="HTML")
-            bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.category(book.id, sent['message_id']))
+            user.status = "normal"
+            bot.sendMessage(user.chatId, "📗 <b>{}</b> successfully uploaded!", parse_mode="HTML")
     else:
         bot.sendMessage(user.chatId, "📙 Warning: <b>{}</b> already exists! If you think this is an error, please change the "
                                      "ebook name and reupload it.".format(fileName), parse_mode="HTML")
