@@ -130,7 +130,7 @@ def reply_file(bot, user, msg):
         commit()
         if isAdmin(user.chatId):
             user.status = "selecting_category#{}".format(book.id)
-            if not select(c for c in Category if c.category != "General")[:]:
+            if not select(c for c in Category if c.name != "General")[:]:
                 bot.sendMessage(user.chatId, "📗 <b>{}</b> successfully uploaded!\n"
                                             "Please type a name to create a new category:".format(fileName), parse_mode="HTML")
             else:
