@@ -64,6 +64,10 @@ def reply_text(bot, user, msg):
         elif text == "/syncfiles" and isAdmin(user.chatId):
             syncFiles()
             bot.sendMessage(user.chatId, "♻️ Successfully synced files!")
+        
+        elif text == "/delbook" and isAdmin(user.chatId):
+            sent = bot.sendMessage(user.chatId, "🗑 Please choose a book from below:")
+            bot.editMessageReplyMarkup((user.chatId, sent['message_id']), keyboards.delbook(sent['message_id']))
 
         # General user commands
         elif text == "/start":
@@ -162,6 +166,15 @@ def reply_button(bot, user, query):
         user.status = "selecting_category#{}".format(book_id)
         bot.editMessageText((user.chatId, message_id), "Please select a category for the book, or type a name to create a new one:",
                             reply_markup=keyboards.category(book_id, message_id))
+    
+    elif text.startswith("delbook"):
+        from os import remove
+        book_id = int(text.split('_')[1])
+        book = Book.get(id=book_id)
+        name = book.name
+        remove('ebooks/{}'.format(name))
+        book.delete()
+        bot.editMessageText((user.chatId, message_id), "🗑 {} successfully deleted.".format(name), reply_markup=None)
 
     elif text.startswith("searchcat"):
         cat_id = int(text.split('_')[1])
@@ -181,3 +194,6 @@ def reply_button(bot, user, query):
 
     elif text == "moveall":
         bot.editMessageReplyMarkup((user.chatId, message_id), keyboards.movebook(message_id, show_all=True))
+    
+    elif text == "delall":
+        bot.editMessageReplyMarkup((user.chatId, message_id), keyboards.delbook(message_id, show_all=True))
