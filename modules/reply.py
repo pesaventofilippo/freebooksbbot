@@ -195,6 +195,6 @@ def reply_button(bot, user, query):
 
     elif text == "moveall":
         bot.editMessageReplyMarkup((user.chatId, message_id), keyboards.movebook(message_id, show_all=True))
-    
+
     elif text == "delall":
         bot.editMessageReplyMarkup((user.chatId, message_id), keyboards.delbook(message_id, show_all=True))
