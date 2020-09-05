@@ -23,6 +23,8 @@ def reply(msg):
     else:
         text = ""
 
+    if not Category.exists(lambda c: c.name == "General"):
+        Category(name= "General")
     if not User.exists(lambda u: u.chatId == chatId):
         User(chatId=chatId)
     user = User.get(chatId=chatId)
@@ -132,7 +134,7 @@ def reply(msg):
         fileSize = msg['document']['file_size']
         fileName = msg['document']['file_name']
         if fileSize > 50000000: # 50MB Telegram Limit (in bytes)
-            bot.sendMessage(chatId, "📕 Error: file size must be lower than <b>50MB</b>.", parse_mode="HTML")
+            bot.sendMessage(chatId, "📕 Sorry, the file size must be lower than <b>50MB</b>.", parse_mode="HTML")
             return
 
         if not Book.exists(lambda b: b.name == fileName):
@@ -143,7 +145,7 @@ def reply(msg):
                 book.category = Category.get(name="General")
                 if user.status != "bulk_uploading_file":
                     user.status = "normal"
-                bot.sendMessage(chatId, "📗 <b>{}</b> successfully uploaded!", parse_mode="HTML")
+                bot.sendMessage(chatId, "📗 <b>{}</b> successfully uploaded!".format(fileName), parse_mode="HTML")
 
             else:
                 user.status = "selecting_category#{}".format(book.id)
