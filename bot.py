@@ -58,9 +58,13 @@ def reply(msg):
                 bot.sendMessage(chatId, "📙 Category <b>{}</b> already exists!\n"
                                         "Try with a different name, or select one from the list above.".format(text), parse_mode="HTML")
 
-        elif text == "/users" and isAdmin(chatId):
+        elif text == "/getusers" and isAdmin(chatId):
             users = len(select(u for u in User)[:])
             bot.sendMessage(chatId, "👥 There currently are <b>{}</b> registered users.".format(users), parse_mode="HTML")
+
+        elif text == "/getbooks" and isAdmin(chatId):
+            books = len(select(b for b in Book)[:])
+            bot.sendMessage(chatId, "📚 There currently are <b>{}</b> books.".format(books), parse_mode="HTML")
 
         elif text == "/movebook" and isAdmin(chatId):
             sent = bot.sendMessage(chatId, "📦 Please choose the book you want to move:")
@@ -69,6 +73,11 @@ def reply(msg):
         elif text == "/delbook" and isAdmin(chatId):
             sent = bot.sendMessage(chatId, "🗑 Please choose the book to delete:")
             bot.editMessageReplyMarkup((chatId, sent['message_id']), keyboards.delbook(sent['message_id']))
+
+        elif text == "/bulkupload":
+            user.status = "bulk_uploading_file"
+            bot.sendMessage(chatId, "📎 <b>Bulk Upload mode active.</b> Type /cancel to abort.\n"
+                                    "<i>Only PDF files are supported.</i>", parse_mode="HTML")
 
         # General user commands
         elif text == "/start":
@@ -114,7 +123,7 @@ def reply(msg):
 
     ## File Document
     elif msg.get('document') and supportedFile(msg):
-        if user.status != "uploading_file":
+        if not user.status.endswith("uploading_file"):
             bot.sendMessage(chatId, "📕 Sorry, you're currently not uploading a file.\n"
                                     "Type /submit if you would like to submit a new book.")
             return
@@ -129,7 +138,12 @@ def reply(msg):
         if not Book.exists(lambda b: b.name == fileName):
             book = Book(name=fileName, telegramFileId=fileId)
             commit()
-            if isAdmin(chatId):
+            if (not isAdmin(chatId)) or (user.status == "bulk_uploading_file"):
+                book.category = Category.get(name="General")
+                user.status = "normal"
+                bot.sendMessage(chatId, "📗 <b>{}</b> successfully uploaded!", parse_mode="HTML")
+
+            else:
                 user.status = "selecting_category#{}".format(book.id)
                 if not select(c for c in Category if c.name != "General")[:]:
                     bot.sendMessage(chatId, "📗 <b>{}</b> successfully uploaded!\n"
@@ -139,10 +153,6 @@ def reply(msg):
                                                    "Please select a category for the book, or type a name to create a new one:"
                                                    "".format(fileName), parse_mode="HTML")
                     bot.editMessageReplyMarkup((chatId, sent['message_id']), keyboards.category(book.id, sent['message_id']))
-            else:
-                book.category = Category.get(name="General")
-                user.status = "normal"
-                bot.sendMessage(chatId, "📗 <b>{}</b> successfully uploaded!", parse_mode="HTML")
 
         # Book with same name already exists
         else:
