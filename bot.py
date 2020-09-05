@@ -29,7 +29,7 @@ def reply(msg):
 
     ## Text Message
     if msg.get('text'):
-        if user.status == "uploading_file":
+        if user.status.endswith("uploading_file"):
             if text == "/cancel":
                 user.status = "normal"
                 bot.sendMessage(chatId, "📕 File upload cancelled.")
