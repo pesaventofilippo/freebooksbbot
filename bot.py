@@ -138,9 +138,11 @@ def reply(msg):
         if not Book.exists(lambda b: b.name == fileName):
             book = Book(name=fileName, telegramFileId=fileId)
             commit()
+
             if (not isAdmin(chatId)) or (user.status == "bulk_uploading_file"):
                 book.category = Category.get(name="General")
-                user.status = "normal"
+                if user.status != "bulk_uploading_file":
+                    user.status = "normal"
                 bot.sendMessage(chatId, "📗 <b>{}</b> successfully uploaded!", parse_mode="HTML")
 
             else:
