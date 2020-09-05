@@ -13,3 +13,4 @@ ebooks/
 
 # MacOS Finder Junk
 *.DS_Store
+.idea/
