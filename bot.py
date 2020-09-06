@@ -54,27 +54,27 @@ def reply(msg):
                 commit()
                 book.category = cat
                 user.status = "normal"
-                bot.sendMessage(chatId, "📗 New category <b>{}</b> successfully added!\n"
-                                        "I also added the book to the new category for you.".format(text), parse_mode="HTML")
+                bot.sendMessage(chatId, f"📗 New category <b>{text}</b> successfully added!\n"
+                                        f"I also added the book to the new category for you.", parse_mode="HTML")
             else:
-                bot.sendMessage(chatId, "📙 Category <b>{}</b> already exists!\n"
-                                        "Try with a different name, or select one from the list above.".format(text), parse_mode="HTML")
+                bot.sendMessage(chatId, f"📙 Category <b>{text}</b> already exists!\n"
+                                        f"Try with a different name, or select one from the list above.", parse_mode="HTML")
 
         elif text == "/getusers" and isAdmin(chatId):
             users = len(select(u for u in User)[:])
-            bot.sendMessage(chatId, "👥 There currently are <b>{}</b> registered users.".format(users), parse_mode="HTML")
+            bot.sendMessage(chatId, f"👥 There currently are <b>{users}</b> registered users.", parse_mode="HTML")
 
         elif text == "/getbooks" and isAdmin(chatId):
             books = len(select(b for b in Book)[:])
-            bot.sendMessage(chatId, "📚 There currently are <b>{}</b> books.".format(books), parse_mode="HTML")
+            bot.sendMessage(chatId, f"📚 There currently are <b>{books}</b> books.", parse_mode="HTML")
 
         elif text == "/movebook" and isAdmin(chatId):
             sent = bot.sendMessage(chatId, "📦 Please choose the book you want to move:")
-            bot.editMessageReplyMarkup((chatId, sent['message_id']), keyboards.movebook(sent['message_id']))
+            bot.editMessageReplyMarkup((chatId, sent['message_id']), keyboards.manageBooks("move", sent['message_id']))
 
         elif text == "/delbook" and isAdmin(chatId):
             sent = bot.sendMessage(chatId, "🗑 Please choose the book to delete:")
-            bot.editMessageReplyMarkup((chatId, sent['message_id']), keyboards.delbook(sent['message_id']))
+            bot.editMessageReplyMarkup((chatId, sent['message_id']), keyboards.manageBooks("del", sent['message_id']))
 
         elif text == "/bulkupload":
             user.status = "bulk_uploading_file"
@@ -83,10 +83,10 @@ def reply(msg):
 
         # General user commands
         elif text == "/start":
-            bot.sendMessage(chatId, "Hey <b>{}</b>! I'm the Free Books Bot 👋🏻\n"
-                                    "I'm currently in <b>Beta Version</b>, but you can already use me to find some books: "
-                                    "type /search to find a book by category, or type /help if you have any question."
-                                    "".format(name), parse_mode="HTML")
+            bot.sendMessage(chatId, f"Hey <b>{name}</b>! I'm the Free Books Bot 👋🏻\n"
+                                    f"I'm currently in <b>Beta Version</b>, but you can already use me to find some books: "
+                                    f"type /search to find a book by category, or type /help if you have any question.",
+                            parse_mode="HTML")
 
         elif text == "/help":
             bot.sendMessage(chatId, "<b>Commands List</b>\n\n"
@@ -145,23 +145,23 @@ def reply(msg):
                 book.category = Category.get(name="General")
                 if user.status != "bulk_uploading_file":
                     user.status = "normal"
-                bot.sendMessage(chatId, "📗 <b>{}</b> successfully uploaded!".format(fileName), parse_mode="HTML")
+                bot.sendMessage(chatId, f"📗 <b>{fileName}</b> successfully uploaded!", parse_mode="HTML")
 
             else:
-                user.status = "selecting_category#{}".format(book.id)
+                user.status = f"selecting_category#{book.id}"
                 if not select(c for c in Category if c.name != "General")[:]:
-                    bot.sendMessage(chatId, "📗 <b>{}</b> successfully uploaded!\n"
-                                            "Please type a name to create a new category:".format(fileName), parse_mode="HTML")
+                    bot.sendMessage(chatId, f"📗 <b>{fileName}</b> successfully uploaded!\n"
+                                            f"Please type a name to create a new category:", parse_mode="HTML")
                 else:
-                    sent = bot.sendMessage(chatId, "📗 <b>{}</b> successfully uploaded!\n"
-                                                   "Please select a category for the book, or type a name to create a new one:"
-                                                   "".format(fileName), parse_mode="HTML")
+                    sent = bot.sendMessage(chatId, f"📗 <b>{fileName}</b> successfully uploaded!\n"
+                                                   f"Please select a category for the book, or type a name to create a new one:",
+                                           parse_mode="HTML")
                     bot.editMessageReplyMarkup((chatId, sent['message_id']), keyboards.category(book.id, sent['message_id']))
 
         # Book with same name already exists
         else:
-            bot.sendMessage(chatId, "📙 Warning: \"<b>{}</b>\" already exists! If you think this is an error, please "
-                                    "change the file name and reupload it.".format(fileName), parse_mode="HTML")
+            bot.sendMessage(chatId, f"📙 Warning: \"<b>{fileName}</b>\" already exists! If you think this is an error, please "
+                                    f"change the file name and reupload it.", parse_mode="HTML")
 
     # Filetype not supported
     else:
@@ -182,12 +182,12 @@ def button(msg):
         book = Book.get(id=int(text_split[2]))
         book.category = Category.get(id=int(text_split[1]))
         user.status = "normal"
-        bot.editMessageText((chatId, message_id), "🗂 Successfully moved book <b>{}</b> to category <b>{}</b>!".format(
-            book.name, book.category.name), parse_mode="HTML", reply_markup=None)
+        bot.editMessageText((chatId, message_id), f"🗂 Successfully moved book <b>{book.name}</b> to category "
+                                                  f"<b>{book.category.name}</b>!", parse_mode="HTML", reply_markup=None)
 
-    elif text.startswith("mvbook"):
+    elif text.startswith("movebook"):
         book_id = int(text.split('_')[1])
-        user.status = "selecting_category#{}".format(book_id)
+        user.status = f"selecting_category#{book_id}"
         bot.editMessageText((chatId, message_id), "Please select a category for the book, or type a name to create a new one:",
                             reply_markup=keyboards.category(book_id, message_id))
 
@@ -196,18 +196,17 @@ def button(msg):
         book = Book.get(id=book_id)
         name = book.name
         book.delete()
-        bot.editMessageText((chatId, message_id), "🗑 <b>{}</b> successfully deleted.".format(name), parse_mode="HTML", reply_markup=None)
+        bot.editMessageText((chatId, message_id), f"🗑 <b>{name}</b> successfully deleted.", parse_mode="HTML", reply_markup=None)
 
     elif text.startswith("searchcat"):
         cat_id = int(text.split('_')[1])
         cat = Category.get(id=cat_id)
         res = ""
-        for b in cat.books:
-            res += "\n📖 <a href=\"https://t.me/freebooksbbot?start=getbook_{}\">{}</a>".format(b.id, b.name)
-        bot.editMessageText((chatId, message_id), "🔍 <b>Category: {}</b>\n"
-                                                  "Click on any book title, then click on \"Start\" at the bottom to "
-                                                  "download the ebook:\n\n"
-                                                  "{}".format(cat.name, res), parse_mode="HTML",
+        for b in sorted(cat.books, key=lambda x: x.name):
+            res += f"\n📖 <a href=\"https://t.me/freebooksbbot?start=getbook_{b.id}\">{b.name}</a>"
+        bot.editMessageText((chatId, message_id), f"🔍 <b>Category: {cat.name}</b>\n"
+                                                  f"Click on any book title, then click on \"Start\" at the bottom to "
+                                                  f"download the ebook:\n" + res, parse_mode="HTML",
                             reply_markup=keyboards.back_search(message_id), disable_web_page_preview=True)
 
     elif text == "backsearch":
@@ -216,10 +215,10 @@ def button(msg):
                             parse_mode="HTML", reply_markup=keyboards.search_cat(message_id))
 
     elif text == "moveall":
-        bot.editMessageReplyMarkup((chatId, message_id), keyboards.movebook(message_id, show_all=True))
+        bot.editMessageReplyMarkup((chatId, message_id), keyboards.manageBooks("move", message_id, show_all=True))
 
     elif text == "delall":
-        bot.editMessageReplyMarkup((chatId, message_id), keyboards.delbook(message_id, show_all=True))
+        bot.editMessageReplyMarkup((chatId, message_id), keyboards.manageBooks("del", message_id, show_all=True))
 
 
 def incoming_message(msg):

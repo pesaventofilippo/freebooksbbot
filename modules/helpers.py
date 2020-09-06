@@ -1,9 +1,11 @@
-botAdmins = [368894926]
+adminIds = [368894926]
 allowedExtensions = ['pdf']
 
 
-def isAdmin(chat_id):
-    return chat_id in botAdmins
+def isAdmin(chatId: int=-1):
+    if chatId > 0:
+        return chatId in adminIds
+    return adminIds
 
 
 def getFileType(file):
