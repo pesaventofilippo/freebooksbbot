@@ -1,5 +1,5 @@
 from time import sleep
-from telepot import Bot, glance
+from telepotpro import Bot, glance
 from threading import Thread
 from pony.orm import select, db_session, commit
 from modules.database import User, Book, Category

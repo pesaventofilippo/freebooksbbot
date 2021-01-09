@@ -1,4 +1,4 @@
-from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
+from telepotpro.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from pony.orm import db_session, select
 from modules.database import Book, Category
 
